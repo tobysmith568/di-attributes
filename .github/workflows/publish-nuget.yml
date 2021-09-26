@@ -27,7 +27,7 @@ jobs:
       run: dotnet build --configuration Release --no-restore
       
     - name: Pack
-      run: dotnet pack --no-build -c Release DiAttributes/DiAttributes.csproj -o . /p:Version=${{ steps.get_version.outputs.version-without-v }}
+      run: dotnet pack --no-build -c Release DiAttributes/DiAttributes.csproj -o . -p:Version=${{ steps.get_version.outputs.version-without-v }}
       
     - name: Push
       run: dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k ${{secrets.NUGET_API_KEY}} --skip-duplicate -n 1
