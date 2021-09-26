@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Toby Smith</Authors>
+    <Company>Toby Smith</Company>
+    <Description>Attributes for automatically registering classes with Microsoft's IServiceCollection IoC container.</Description>
+    <Copyright>Copyright © 2021 Toby Smith</Copyright>
+    <PackageLicenseExpression>ISC</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/tobysmith568/di-attributes</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/tobysmith568/di-attributes</RepositoryUrl>
+    <PackageTags>dependency injection di ioc iservicecollection attribute</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
