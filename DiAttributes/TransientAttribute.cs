@@ -18,6 +18,7 @@ namespace DiAttributes
     [AttributeUsage(AttributeTargets.Class)]
     public class TransientAttribute : Attribute
     {
+        /// <param name="serviceType">The service type to register the class against; usually an interface</param>
         public TransientAttribute(Type serviceType)
         {
             ServiceType = serviceType;
@@ -27,6 +28,6 @@ namespace DiAttributes
         {
         }
 
-        public Type ServiceType { get; }
+        public Type? ServiceType { get; }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace DiAttributes
 {
@@ -18,6 +18,7 @@ namespace DiAttributes
     [AttributeUsage(AttributeTargets.Class)]
     public class ScopedAttribute : Attribute
     {
+        /// <param name="serviceType">The service type to register the class against; usually an interface</param>
         public ScopedAttribute(Type serviceType)
         {
             ServiceType = serviceType;
@@ -27,6 +28,6 @@ namespace DiAttributes
         {
         }
 
-        public Type ServiceType { get; }
+        public Type? ServiceType { get; }
     }
 }
