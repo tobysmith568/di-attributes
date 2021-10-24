@@ -1,14 +1,25 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace DiAttributes
 {
     public static class RegisterExtensions
     {
+        private const string NullConfigurationException = "A class was decorated with the Configuration attribute " +
+            "but RegisterDiAttributes was called without passing in an IConfiguration.";
+        private static MethodInfo? configureMethod;
+
         public static void RegisterDiAttributes(this IServiceCollection services)
+        {
+            RegisterDiAttributes(services, null);
+        }
+
+        public static void RegisterDiAttributes(this IServiceCollection services, IConfiguration? configuration)
         {
             if (services == null)
             {
@@ -21,20 +32,49 @@ namespace DiAttributes
 
             foreach (var @class in classes)
             {
-                foreach (var customAttribute in @class.CustomAttributes)
+                TryRegisterClass(@class, services, configuration);
+            }
+        }
+
+        public static void TryRegisterClass(Type @class, IServiceCollection services, IConfiguration? configuration)
+        {
+            foreach (var customAttribute in @class.CustomAttributes)
+            {
+                if (customAttribute.AttributeType == typeof(ScopedAttribute))
                 {
-                    TryRegisterScopedAttribute(services, @class, customAttribute);
-                    TryRegisterSingletonAttribute(services, @class, customAttribute);
-                    TryRegisterTransientAttribute(services, @class, customAttribute);
+                    RegisterScopedAttribute(services, @class, customAttribute);
+                    return;
+                }
+
+                if (customAttribute.AttributeType == typeof(SingletonAttribute))
+                {
+                    RegisterSingletonAttribute(services, @class, customAttribute);
+                    return;
+                }
+
+                if (customAttribute.AttributeType == typeof(TransientAttribute))
+                {
+                    RegisterTransientAttribute(services, @class, customAttribute);
+                    return;
+                }
+
+                if (customAttribute.AttributeType == typeof(ConfigurationAttribute))
+                {
+                    if (configuration == null)
+                        throw new ArgumentNullException(nameof(configuration), NullConfigurationException);
+
+                    RegisterConfigurationAttribute(services, configuration, @class, customAttribute);
+                    return;
                 }
             }
         }
 
-        private static void TryRegisterScopedAttribute(IServiceCollection services, Type injectable, CustomAttributeData customAttributeData)
+        private static void RegisterScopedAttribute(IServiceCollection services, Type injectable, CustomAttributeData customAttributeData)
         {
             if (customAttributeData.AttributeType != typeof(ScopedAttribute))
             {
-                return;
+                string message = $"The given custom attribute needs to have a type of {typeof(ScopedAttribute)}";
+                throw new ArgumentException(message, nameof(customAttributeData));
             }
 
             if (customAttributeData.ConstructorArguments.Count > 0)
@@ -48,7 +88,7 @@ namespace DiAttributes
             }
         }
 
-        private static void TryRegisterSingletonAttribute(IServiceCollection services, Type injectable, CustomAttributeData customAttributeData)
+        private static void RegisterSingletonAttribute(IServiceCollection services, Type injectable, CustomAttributeData customAttributeData)
         {
             if (customAttributeData.AttributeType != typeof(SingletonAttribute))
             {
@@ -66,7 +106,7 @@ namespace DiAttributes
             }
         }
 
-        private static void TryRegisterTransientAttribute(IServiceCollection services, Type injectable, CustomAttributeData customAttributeData)
+        private static void RegisterTransientAttribute(IServiceCollection services, Type injectable, CustomAttributeData customAttributeData)
         {
             if (customAttributeData.AttributeType != typeof(TransientAttribute))
             {
@@ -82,6 +122,95 @@ namespace DiAttributes
             {
                 services.AddTransient(injectable);
             }
+        }
+
+        private static void RegisterConfigurationAttribute(IServiceCollection services, IConfiguration config, Type injectable, CustomAttributeData customAttributeData)
+        {
+            if (customAttributeData.AttributeType != typeof(ConfigurationAttribute))
+            {
+                return;
+            }
+
+            if (customAttributeData.ConstructorArguments.Count <= 0)
+            {
+                return;
+            }
+
+            var key = (string)customAttributeData.ConstructorArguments[0].Value;
+
+            var genericConfigureMethod = GetConfigureMethodForGenericType(injectable);
+            try
+            {
+                genericConfigureMethod.Invoke(services, new object[] { services, config.GetSection(key) });
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Unabled to configure the class {injectable.FullName} with the key '{key}'", ex);
+            }
+        }
+
+        private static MethodInfo GetConfigureMethodForGenericType(Type genericType)
+        {
+            const BindingFlags StaticMethodBindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+
+            if (configureMethod != null)
+            {
+                return configureMethod.MakeGenericMethod(new Type[] { genericType });
+            }
+
+            var allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            var configurationAssemblies = allAssemblies.Where(a =>
+            {
+                const string ConfigurationAssemblyName = "Microsoft.Extensions.Options.ConfigurationExtensions,";
+                return a.FullName.StartsWith(ConfigurationAssemblyName);
+            });
+
+            var allTypes = configurationAssemblies.SelectMany(a => a.GetTypes());
+
+            var sealedNonGenericTypes = allTypes
+                .Where(t => t.IsSealed && !t.IsGenericType && !t.IsNested);
+
+            var extensionMethods = sealedNonGenericTypes
+                .SelectMany(t => t.GetMethods(StaticMethodBindingFlags))
+                .Where(method => method.IsDefined(typeof(ExtensionAttribute), false));
+
+            var extMethodsWithCorrectSignature = extensionMethods.Where<MethodInfo>(method =>
+            {
+                const string ConfigureMethodName = "Configure";
+                if (method.Name != ConfigureMethodName)
+                    return false;
+
+                var parameters = method.GetParameters();
+
+                if (parameters.Length != 2)
+                    return false;
+
+                if (parameters[0].ParameterType != typeof(IServiceCollection))
+                    return false;
+
+                if (parameters[1].ParameterType != typeof(IConfiguration))
+                    return false;
+
+                return true;
+            });
+
+            if (extMethodsWithCorrectSignature.Count() != 1)
+            {
+                const string ErrorMessage = "Found more than one IServiceCollection.Configure extension method";
+                throw new InvalidOperationException(ErrorMessage);
+            }
+
+            var correctExtensionMethod = extMethodsWithCorrectSignature.SingleOrDefault();
+
+            if (correctExtensionMethod == null)
+            {
+                const string ErrorMessage = "Unable to find the IServiceCollection.Configure extension method";
+                throw new InvalidOperationException(ErrorMessage);
+            }
+
+            configureMethod = correctExtensionMethod;
+            return correctExtensionMethod.MakeGenericMethod(new Type[] { genericType });
         }
     }
 }
