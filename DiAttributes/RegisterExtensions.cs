@@ -14,12 +14,29 @@ namespace DiAttributes
             "but RegisterDiAttributes was called without passing in an IConfiguration.";
         private static MethodInfo? configureMethod;
 
+        /// <summary>
+        /// Registers all classes that are decorated with the Scoped, Transient, and Singleton attributes.
+        /// 
+        /// To use the Configuration attribute you need to use the overload which accepts an IConfiguration.
+        /// </summary>
         public static void RegisterDiAttributes(this IServiceCollection services)
         {
-            RegisterDiAttributes(services, null);
+            Register(services, null);
         }
 
-        public static void RegisterDiAttributes(this IServiceCollection services, IConfiguration? configuration)
+        /// <summary>
+        /// Registers all classes that are decorated with the Scoped, Transient, Singleton, and Configuration attributes.
+        /// 
+        /// If you're not using the Configuration attribute then you can use the overload which doesn't need an IConfiguration.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void RegisterDiAttributes(this IServiceCollection services, IConfiguration configuration)
+        {
+            Register(services, configuration);
+        }
+
+        private static void Register(this IServiceCollection services, IConfiguration? configuration)
         {
             if (services == null)
             {
@@ -36,7 +53,7 @@ namespace DiAttributes
             }
         }
 
-        public static void TryRegisterClass(Type @class, IServiceCollection services, IConfiguration? configuration)
+        private static void TryRegisterClass(Type @class, IServiceCollection services, IConfiguration? configuration)
         {
             foreach (var customAttribute in @class.CustomAttributes)
             {
