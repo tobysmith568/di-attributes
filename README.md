@@ -17,7 +17,7 @@ public class MyService
 }
 ```
 
-This is the equivilent of having the following in your `Startup.cs`:
+This is the equivalent of having the following in your `Startup.cs`:
 
 ```cs
 services.Scoped<MyService>();
@@ -38,7 +38,7 @@ public class MyService : IMyService
 }
 ```
 
-This is the equivilent of having the following in your `Startup.cs`:
+This is the equivalent of having the following in your `Startup.cs`:
 
 ```cs
 services.Scoped<IMyService, MyService>();
@@ -73,7 +73,7 @@ public class MyInnerOptions
 }
 ```
 
-To use this attribute you will require need to pass an `ICollection` to the `RegisterDiAttributes` call in your `Startup.cs` file:
+To use this attribute you will need to pass an `ICollection` to the `RegisterDiAttributes` call in your `Startup.cs` file:
 ```cs
 services.RegisterDiAttributes(Configuration);
 ```
