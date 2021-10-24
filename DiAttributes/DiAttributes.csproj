@@ -9,7 +9,8 @@
     <PackageLicenseExpression>ISC</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/tobysmith568/di-attributes</PackageProjectUrl>
     <RepositoryUrl>https://github.com/tobysmith568/di-attributes</RepositoryUrl>
-    <PackageTags>dependency injection di ioc iservicecollection attribute</PackageTags>
+    <PackageTags>dependency injection di ioc iservicecollection iconfiguration configuration attribute scoped transient singleton</PackageTags>
+    <PackageReadmeFile>./README.md</PackageReadmeFile>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -17,6 +18,10 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
 </Project>
