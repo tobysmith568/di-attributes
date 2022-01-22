@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using DiAttributes.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,8 +61,8 @@ namespace DiAttributes
             MethodInfo extensionMethod;
             try
             {
-                extensionMethod = AppDomain.CurrentDomain
-                    .GetExtensionMethodsInAssembly("Microsoft.Extensions.Http")
+                extensionMethod = Assembly.Load("Microsoft.Extensions.Http")
+                    .GetAllExtensionMethods()
                     .WithMethodName("AddHttpClient")
                     .WithNumberOfGenericArguments(2)
                     .WithParameters(typeof(IServiceCollection))

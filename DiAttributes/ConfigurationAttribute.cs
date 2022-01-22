@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DiAttributes.Extensions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -78,8 +79,8 @@ namespace DiAttributes
             MethodInfo extensionMethod;
             try
             {
-                extensionMethod = AppDomain.CurrentDomain
-                    .GetExtensionMethodsInAssembly("Microsoft.Extensions.Options.ConfigurationExtensions")
+                extensionMethod = Assembly.Load("Microsoft.Extensions.Options.ConfigurationExtensions")
+                    .GetAllExtensionMethods()
                     .WithMethodName("Configure")
                     .WithParameters(typeof(IServiceCollection), typeof(IConfiguration))
                     .SingleOrDefault();

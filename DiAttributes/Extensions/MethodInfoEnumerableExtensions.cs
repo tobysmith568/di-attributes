@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
-namespace DiAttributes
+namespace DiAttributes.Extensions
 {
     internal static class MethodInfoEnumerableExtensions
     {
