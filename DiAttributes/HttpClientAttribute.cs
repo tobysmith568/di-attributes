@@ -1,86 +1,96 @@
 ﻿using DiAttributes.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 
-namespace DiAttributes
+namespace DiAttributes;
+
+/// <summary>
+/// Apply this attribute to a class to register it as an HTTP Client dependency in the IoC container.
+/// This type of dependency is Transient.
+/// 
+/// Use the parameter to register the class against a service type
+/// 
+/// e.g.
+/// 
+/// <code>
+///     [HttpClient(typeof(IMyService))]  
+///     public class MyService : IMyService  
+///     { }
+/// </code>
+/// </summary>
+[AttributeUsage(AttributeTargets.Class)]
+public class HttpClientAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class HttpClientAttribute : Attribute
+    /// <param name="serviceType">The service type to register the class against; usually an interface</param>
+    public HttpClientAttribute(Type serviceType)
     {
-        /// <param name="serviceType">The service type to register the class against; usually an interface</param>
-        public HttpClientAttribute(Type serviceType)
-        {
-            ServiceType = serviceType;
-        }
-
-        public HttpClientAttribute()
-        {
-        }
-
-        public Type? ServiceType { get; }
+        ServiceType = serviceType;
     }
 
-    internal static class HttpClientTypeExtensions
+    public HttpClientAttribute()
     {
-        private static MethodInfo? cachedAddHttpClientMethod;
+    }
 
-        internal static void RegisterAsHttpClient(this Type @class, CustomAttributeData customAttributeData, IServiceCollection services)
+    public Type? ServiceType { get; }
+}
+
+internal static class HttpClientTypeExtensions
+{
+    private static MethodInfo? cachedAddHttpClientMethod;
+
+    internal static void RegisterAsHttpClient(this Type @class, CustomAttributeData customAttributeData, IServiceCollection services)
+    {
+        if (cachedAddHttpClientMethod == null)
         {
-            if (cachedAddHttpClientMethod == null)
-            {
-                cachedAddHttpClientMethod = GetAddHttpClientExtensionMethod();
-            }
-
-            var genericArguments = new List<Type>(2);
-
-            if (customAttributeData.ConstructorArguments.Count == 1)
-            {
-                var serviceType = (Type)customAttributeData.ConstructorArguments[0].Value;
-                genericArguments.Add(serviceType);
-            }
-
-            genericArguments.Add(@class);
-
-            var addHttpClientMethod = cachedAddHttpClientMethod.MakeGenericMethod(genericArguments.ToArray());
-
-            try
-            {
-                addHttpClientMethod.Invoke(services, new object[] { services });
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Unabled to register the class {@class.FullName} as an HttpClient", ex);
-            }
+            cachedAddHttpClientMethod = GetAddHttpClientExtensionMethod();
         }
 
-        private static MethodInfo GetAddHttpClientExtensionMethod()
+        var genericArguments = new List<Type>(2);
+
+        if (customAttributeData.ConstructorArguments.Count == 1)
         {
-            MethodInfo extensionMethod;
-            try
-            {
-                extensionMethod = Assembly.Load("Microsoft.Extensions.Http")
-                    .GetAllExtensionMethods()
-                    .WithMethodName("AddHttpClient")
-                    .WithNumberOfGenericArguments(2)
-                    .WithParameters(typeof(IServiceCollection))
-                    .SingleOrDefault();
-            }
-            catch (InvalidOperationException ex)
-            {
-                const string ErrorMessage = "Found more than one IServiceCollection.AddHttpClient extension method";
-                throw new InvalidOperationException(ErrorMessage, ex);
-            }
-
-            if (extensionMethod == null)
-            {
-                const string ErrorMessage = "Unable to find the IServiceCollection.AddHttpClient extension method";
-                throw new InvalidOperationException(ErrorMessage);
-            }
-
-            return extensionMethod;
+            var serviceType = (Type)customAttributeData.ConstructorArguments[0].Value;
+            genericArguments.Add(serviceType);
         }
+
+        genericArguments.Add(@class);
+
+        var addHttpClientMethod = cachedAddHttpClientMethod.MakeGenericMethod(genericArguments.ToArray());
+
+        try
+        {
+            addHttpClientMethod.Invoke(services, new object[] { services });
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Unabled to register the class {@class.FullName} as an HttpClient", ex);
+        }
+    }
+
+    private static MethodInfo GetAddHttpClientExtensionMethod()
+    {
+        MethodInfo extensionMethod;
+        try
+        {
+            extensionMethod = Assembly.Load("Microsoft.Extensions.Http")
+                .GetAllExtensionMethods()
+                .WithMethodName("AddHttpClient")
+                .WithNumberOfGenericArguments(2)
+                .WithParameters(typeof(IServiceCollection))
+                .SingleOrDefault();
+        }
+        catch (InvalidOperationException ex)
+        {
+            const string ErrorMessage = "Found more than one IServiceCollection.AddHttpClient extension method";
+            throw new InvalidOperationException(ErrorMessage, ex);
+        }
+
+        if (extensionMethod == null)
+        {
+            const string ErrorMessage = "Unable to find the IServiceCollection.AddHttpClient extension method";
+            throw new InvalidOperationException(ErrorMessage);
+        }
+
+        return extensionMethod;
     }
 }

@@ -11,8 +11,9 @@
     <RepositoryUrl>https://github.com/tobysmith568/di-attributes</RepositoryUrl>
     <PackageTags>dependency injection di ioc iservicecollection iconfiguration configuration attribute scoped transient singleton</PackageTags>
     <PackageReadmeFile>./README.md</PackageReadmeFile>
-	  <LangVersion>10</LangVersion>
+    <LangVersion>10</LangVersion>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
