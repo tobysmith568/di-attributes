@@ -7,7 +7,9 @@ namespace DiAttributes.Managers;
 internal class HttpClientManager : IManager
 {
     private readonly IServiceCollection services;
-    private MethodInfo? cachedAddHttpClientMethod;
+
+    private MethodInfo? cachedAddHttpClientMethodWithServiceType;
+    private MethodInfo? cachedAddHttpClientMethodWithoutServiceType;
 
     internal HttpClientManager(IServiceCollection services)
     {
@@ -16,22 +18,11 @@ internal class HttpClientManager : IManager
 
     public void Register(Type @class, CustomAttributeData customAttributeData)
     {
-        if (cachedAddHttpClientMethod == null)
-        {
-            cachedAddHttpClientMethod = GetAddHttpClientExtensionMethod();
-        }
+        var hasServiceType = customAttributeData.ConstructorArguments.Count == 1;
 
-        var genericArguments = new List<Type>(2);
-
-        if (customAttributeData.ConstructorArguments.Count == 1)
-        {
-            var serviceType = (Type)customAttributeData.ConstructorArguments[0].Value;
-            genericArguments.Add(serviceType);
-        }
-
-        genericArguments.Add(@class);
-
-        var addHttpClientMethod = cachedAddHttpClientMethod.MakeGenericMethod(genericArguments.ToArray());
+        var addHttpClientMethod = hasServiceType
+            ? GetRegisterMethodWithServiceType(@class, customAttributeData)
+            : GetRegisterMethodWithoutServiceType(@class);
 
         try
         {
@@ -39,11 +30,35 @@ internal class HttpClientManager : IManager
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException($"Unabled to register the class {@class.FullName} as an HttpClient", ex);
+            throw new InvalidOperationException($"Unabled to register the class '{@class.FullName}' as an HttpClient", ex);
         }
     }
 
-    private static MethodInfo GetAddHttpClientExtensionMethod()
+    private MethodInfo GetRegisterMethodWithServiceType(Type @class, CustomAttributeData customAttributeData)
+    {
+        if (cachedAddHttpClientMethodWithServiceType == null)
+            cachedAddHttpClientMethodWithServiceType = GetRegisterMethodForNumberOfGenerics(2);
+
+        var serviceType = (Type)customAttributeData.ConstructorArguments[0].Value;
+
+        var genericArguments = new Type[] { serviceType, @class };
+
+        var addHttpClientMethod = cachedAddHttpClientMethodWithServiceType.MakeGenericMethod(genericArguments);
+        return addHttpClientMethod;
+    }
+
+    private MethodInfo GetRegisterMethodWithoutServiceType(Type @class)
+    {
+        if (cachedAddHttpClientMethodWithoutServiceType == null)
+            cachedAddHttpClientMethodWithoutServiceType = GetRegisterMethodForNumberOfGenerics(1);
+
+        var genericArguments = new Type[] { @class };
+
+        var addHttpClientMethod = cachedAddHttpClientMethodWithoutServiceType.MakeGenericMethod(genericArguments);
+        return addHttpClientMethod;
+    }
+
+    private static MethodInfo GetRegisterMethodForNumberOfGenerics(int numberOfGenericArgs)
     {
         MethodInfo extensionMethod;
         try
@@ -51,7 +66,7 @@ internal class HttpClientManager : IManager
             extensionMethod = Assembly.Load("Microsoft.Extensions.Http")
                 .GetAllExtensionMethods()
                 .WithMethodName("AddHttpClient")
-                .WithNumberOfGenericArguments(2)
+                .WithNumberOfGenericArguments(numberOfGenericArgs)
                 .WithParameters(typeof(IServiceCollection))
                 .SingleOrDefault();
         }
