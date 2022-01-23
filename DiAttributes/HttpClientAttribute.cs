@@ -1,5 +1,7 @@
 ﻿#pragma warning disable IDE0060 // Remove unused parameter
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace DiAttributes;
 
 /// <summary>
@@ -16,6 +18,7 @@ namespace DiAttributes;
 ///     { }
 /// </code>
 /// </summary>
+[ExcludeFromCodeCoverage]
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public class HttpClientAttribute : Attribute, IDiAttribute
 {
