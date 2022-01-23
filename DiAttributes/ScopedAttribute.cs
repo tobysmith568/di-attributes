@@ -1,3 +1,5 @@
+#pragma warning disable IDE0060 // Remove unused parameter
+
 namespace DiAttributes;
 
 /// <summary>
@@ -19,12 +21,9 @@ public class ScopedAttribute : Attribute, IDiAttribute
     /// <param name="serviceType">The service type to register the class against; usually an interface</param>
     public ScopedAttribute(Type serviceType)
     {
-        ServiceType = serviceType;
     }
 
     public ScopedAttribute()
     {
     }
-
-    public Type? ServiceType { get; }
 }

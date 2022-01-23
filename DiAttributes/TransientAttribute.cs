@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
+﻿#pragma warning disable IDE0060 // Remove unused parameter
 
 namespace DiAttributes;
 
@@ -22,12 +21,9 @@ public class TransientAttribute : Attribute, IDiAttribute
     /// <param name="serviceType">The service type to register the class against; usually an interface</param>
     public TransientAttribute(Type serviceType)
     {
-        ServiceType = serviceType;
     }
 
     public TransientAttribute()
     {
     }
-
-    public Type? ServiceType { get; }
 }

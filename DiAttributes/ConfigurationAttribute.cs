@@ -1,7 +1,4 @@
-﻿using DiAttributes.Extensions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
+﻿#pragma warning disable IDE0060 // Remove unused parameter
 
 namespace DiAttributes;
 
@@ -43,8 +40,5 @@ public class ConfigurationAttribute : Attribute, IDiAttribute
     /// <param name="key">The path in your configuration to bind the class against</param>
     public ConfigurationAttribute(string key)
     {
-        Key = key;
     }
-
-    public string Key { get; }
 }
