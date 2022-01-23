@@ -1,4 +1,4 @@
-name: .NET
+name: NuGet Publish
 
 on:
   release:
@@ -15,16 +15,19 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.0.x
         
     - id: get_version
       uses: battila7/get-version-action@v2
-        
+      
     - name: Restore
       run: dotnet restore
       
     - name: Build
       run: dotnet build --configuration Release --no-restore
+      
+    - name: Test
+      run: dotnet test
       
     - name: Pack
       run: dotnet pack --no-build -c Release DiAttributes/DiAttributes.csproj -o . -p:Version=${{ steps.get_version.outputs.version-without-v }}
