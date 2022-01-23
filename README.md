@@ -3,10 +3,10 @@
 Super-small and super-simple library for registering classes with the ASP.NET Core `IServiceCollection` using attributes.
 
 <a href="https://www.nuget.org/packages/DiAttributes">
-  <img alt="npm" src="https://img.shields.io/nuget/v/DiAttributes?logo=nuget">
+  <img alt="NuGet" src="https://img.shields.io/nuget/v/DiAttributes?logo=nuget">
 </a>
 <a href="https://codecov.io/gh/tobysmith568/di-attributes">
-  <img src="https://codecov.io/gh/tobysmith568/di-attributes/branch/main/graph/badge.svg"/>
+  <img alt="CodeCov" src="https://codecov.io/gh/tobysmith568/di-attributes/branch/main/graph/badge.svg"/>
 </a>
 
 GitHub: https://github.com/tobysmith568/di-attributes  
