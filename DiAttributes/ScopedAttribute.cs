@@ -16,8 +16,8 @@ namespace DiAttributes;
 ///     { }
 /// </code>
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class ScopedAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class ScopedAttribute : Attribute, IDiAttribute
 {
     /// <param name="serviceType">The service type to register the class against; usually an interface</param>
     public ScopedAttribute(Type serviceType)

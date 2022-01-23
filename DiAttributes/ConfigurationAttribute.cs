@@ -1,4 +1,4 @@
-﻿using DiAttributes.Extensions;
+using DiAttributes.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -37,8 +37,8 @@ namespace DiAttributes;
 /// </code>
 /// </example>
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class ConfigurationAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class ConfigurationAttribute : Attribute, IDiAttribute
 {
     /// <param name="key">The path in your configuration to bind the class against</param>
     public ConfigurationAttribute(string key)

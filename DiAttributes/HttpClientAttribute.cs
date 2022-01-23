@@ -1,4 +1,4 @@
-﻿using DiAttributes.Extensions;
+using DiAttributes.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -18,8 +18,8 @@ namespace DiAttributes;
 ///     { }
 /// </code>
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class HttpClientAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class HttpClientAttribute : Attribute, IDiAttribute
 {
     /// <param name="serviceType">The service type to register the class against; usually an interface</param>
     public HttpClientAttribute(Type serviceType)

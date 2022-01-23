@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace DiAttributes;
@@ -16,8 +16,8 @@ namespace DiAttributes;
 ///     { }
 /// </code>
 /// </summary>
-[AttributeUsage(AttributeTargets.Class)]
-public class TransientAttribute : Attribute
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public class TransientAttribute : Attribute, IDiAttribute
 {
     /// <param name="serviceType">The service type to register the class against; usually an interface</param>
     public TransientAttribute(Type serviceType)
