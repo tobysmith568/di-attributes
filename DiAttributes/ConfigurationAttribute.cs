@@ -1,4 +1,4 @@
-using DiAttributes.Extensions;
+﻿using DiAttributes.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -47,56 +47,4 @@ public class ConfigurationAttribute : Attribute, IDiAttribute
     }
 
     public string Key { get; }
-}
-
-internal static class ConfigurationTypeExtensions
-{
-    private static MethodInfo? cachedConfigurationMethod;
-
-    internal static void RegisterAsConfiguration(this Type @class, CustomAttributeData customAttributeData, IServiceCollection services, IConfiguration configuration)
-    {
-        if (cachedConfigurationMethod == null)
-            cachedConfigurationMethod = GetAddConfigurationExtensionMethod();
-
-        if (customAttributeData.ConstructorArguments.Count != 1)
-            return;
-
-        var key = (string)customAttributeData.ConstructorArguments[0].Value;
-
-        try
-        {
-            var configurationMethod = cachedConfigurationMethod.MakeGenericMethod(@class);
-            configurationMethod.Invoke(services, new object[] { services, configuration.GetSection(key) });
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException($"Unabled to configure the class {@class.FullName} with the key '{key}'", ex);
-        }
-    }
-
-    private static MethodInfo GetAddConfigurationExtensionMethod()
-    {
-        MethodInfo extensionMethod;
-        try
-        {
-            extensionMethod = Assembly.Load("Microsoft.Extensions.Options.ConfigurationExtensions")
-                .GetAllExtensionMethods()
-                .WithMethodName("Configure")
-                .WithParameters(typeof(IServiceCollection), typeof(IConfiguration))
-                .SingleOrDefault();
-        }
-        catch (InvalidOperationException ex)
-        {
-            const string ErrorMessage = "Found more than one IServiceCollection.Configure extension method";
-            throw new InvalidOperationException(ErrorMessage, ex);
-        }
-
-        if (extensionMethod == null)
-        {
-            const string ErrorMessage = "Unable to find the IServiceCollection.Configure extension method";
-            throw new InvalidOperationException(ErrorMessage);
-        }
-
-        return extensionMethod;
-    }
 }

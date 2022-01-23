@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace DiAttributes;
@@ -30,19 +30,4 @@ public class TransientAttribute : Attribute, IDiAttribute
     }
 
     public Type? ServiceType { get; }
-}
-
-internal static class TransientTypeExtensions
-{
-    internal static void RegisterAsTransient(this Type @class, CustomAttributeData customAttributeData, IServiceCollection services)
-    {
-        if (customAttributeData.ConstructorArguments.Count == 0)
-        {
-            services.AddTransient(@class);
-            return;
-        }
-
-        var serviceType = (Type)customAttributeData.ConstructorArguments[0].Value;
-        services.AddTransient(serviceType, @class);
-    }
 }

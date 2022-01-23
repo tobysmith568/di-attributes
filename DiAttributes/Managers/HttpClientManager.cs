@@ -1,0 +1,72 @@
+﻿using DiAttributes.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+
+namespace DiAttributes.Managers;
+
+internal class HttpClientManager : IManager
+{
+    private readonly IServiceCollection services;
+    private MethodInfo? cachedAddHttpClientMethod;
+
+    internal HttpClientManager(IServiceCollection services)
+    {
+        this.services = services;
+    }
+
+    public void Register(Type @class, CustomAttributeData customAttributeData)
+    {
+        if (cachedAddHttpClientMethod == null)
+        {
+            cachedAddHttpClientMethod = GetAddHttpClientExtensionMethod();
+        }
+
+        var genericArguments = new List<Type>(2);
+
+        if (customAttributeData.ConstructorArguments.Count == 1)
+        {
+            var serviceType = (Type)customAttributeData.ConstructorArguments[0].Value;
+            genericArguments.Add(serviceType);
+        }
+
+        genericArguments.Add(@class);
+
+        var addHttpClientMethod = cachedAddHttpClientMethod.MakeGenericMethod(genericArguments.ToArray());
+
+        try
+        {
+            addHttpClientMethod.Invoke(services, new object[] { services });
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Unabled to register the class {@class.FullName} as an HttpClient", ex);
+        }
+    }
+
+    private static MethodInfo GetAddHttpClientExtensionMethod()
+    {
+        MethodInfo extensionMethod;
+        try
+        {
+            extensionMethod = Assembly.Load("Microsoft.Extensions.Http")
+                .GetAllExtensionMethods()
+                .WithMethodName("AddHttpClient")
+                .WithNumberOfGenericArguments(2)
+                .WithParameters(typeof(IServiceCollection))
+                .SingleOrDefault();
+        }
+        catch (InvalidOperationException ex)
+        {
+            const string ErrorMessage = "Found more than one IServiceCollection.AddHttpClient extension method";
+            throw new InvalidOperationException(ErrorMessage, ex);
+        }
+
+        if (extensionMethod == null)
+        {
+            const string ErrorMessage = "Unable to find the IServiceCollection.AddHttpClient extension method";
+            throw new InvalidOperationException(ErrorMessage);
+        }
+
+        return extensionMethod;
+    }
+}

@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DiAttributes.Managers;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DiAttributes;
 
 public static class RegisterExtensions
 {
-    private const string NullConfigurationException = "A class was decorated with the Configuration attribute " +
-        "but RegisterDiAttributes was called without passing in an IConfiguration.";
+    private static bool hasAlreadyRegistered;
 
     /// <summary>
     /// Registers all classes that are decorated with the Scoped, Transient, Singleton, and HttpClient attributes.
@@ -15,7 +15,10 @@ public static class RegisterExtensions
     /// </summary>
     public static void RegisterDiAttributes(this IServiceCollection services)
     {
-        Register(services, null);
+        if (services == null)
+            throw new ArgumentNullException(nameof(services), $"The given {nameof(IServiceCollection)} was null.");
+
+        RegisterClasses(services, null);
     }
 
     /// <summary>
@@ -27,13 +30,22 @@ public static class RegisterExtensions
     /// <param name="configuration"></param>
     public static void RegisterDiAttributes(this IServiceCollection services, IConfiguration configuration)
     {
-        Register(services, configuration);
+        if (services == null)
+            throw new ArgumentNullException(nameof(services), $"The given {nameof(IServiceCollection)} was null.");
+
+        if (configuration == null)
+            throw new ArgumentNullException(nameof(configuration), $"The given {nameof(IConfiguration)} was null.");
+
+        RegisterClasses(services, configuration);
     }
 
-    private static void Register(this IServiceCollection services, IConfiguration? configuration)
+    private static void RegisterClasses(IServiceCollection services, IConfiguration? configuration)
     {
-        if (services == null)
-            return;
+        if (hasAlreadyRegistered)
+            throw new InvalidOperationException($"{nameof(RegisterDiAttributes)} has already been called and can only be called once per application.");
+        hasAlreadyRegistered = true;
+
+        var managerFactory = new ManagerFactory(services, configuration);
 
         IEnumerable<Type> classes = AppDomain.CurrentDomain.GetAssemblies()
             .SelectMany(t => t.GetTypes())
@@ -41,46 +53,25 @@ public static class RegisterExtensions
 
         foreach (var @class in classes)
         {
-            TryRegisterClass(@class, services, configuration);
+            RegisterClass(@class, managerFactory);
         }
     }
 
-    private static void TryRegisterClass(Type @class, IServiceCollection services, IConfiguration? configuration)
+    private static void RegisterClass(Type @class, ManagerFactory managerFactory)
     {
-        foreach (var customAttribute in @class.CustomAttributes)
+        var diAttributes = @class.CustomAttributes
+            .Where(a => typeof(IDiAttribute).IsAssignableFrom(a.AttributeType))
+            .GroupBy(a => a.AttributeType, (key, results) => new { AttributeType = key, Attributes = results })
+            .FirstOrDefault();
+
+        if (diAttributes == null)
+            return;
+
+        var manager = managerFactory.GetManager(diAttributes.AttributeType);
+
+        foreach (var attribute in diAttributes.Attributes)
         {
-            if (customAttribute.AttributeType == typeof(ScopedAttribute))
-            {
-                @class.RegisterAsScoped(customAttribute, services);
-                return;
-            }
-
-            if (customAttribute.AttributeType == typeof(SingletonAttribute))
-            {
-                @class.RegisterAsSingleton(customAttribute, services);
-                return;
-            }
-
-            if (customAttribute.AttributeType == typeof(TransientAttribute))
-            {
-                @class.RegisterAsTransient(customAttribute, services);
-                return;
-            }
-
-            if (customAttribute.AttributeType == typeof(HttpClientAttribute))
-            {
-                @class.RegisterAsHttpClient(customAttribute, services);
-                return;
-            }
-
-            if (customAttribute.AttributeType == typeof(ConfigurationAttribute))
-            {
-                if (configuration == null)
-                    throw new ArgumentNullException(nameof(configuration), NullConfigurationException);
-
-                @class.RegisterAsConfiguration(customAttribute, services, configuration);
-                return;
-            }
+            manager.Register(@class, attribute);
         }
     }
 }
