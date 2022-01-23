@@ -36,4 +36,4 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        directory: coverage
+        directory: TestApplication.Tests/TestResults
