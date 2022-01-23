@@ -6,8 +6,6 @@ namespace DiAttributes;
 
 public static class RegisterExtensions
 {
-    private static bool hasAlreadyRegistered;
-
     /// <summary>
     /// Registers all classes that are decorated with the Scoped, Transient, Singleton, and HttpClient attributes.
     /// 
@@ -41,10 +39,6 @@ public static class RegisterExtensions
 
     private static void RegisterClasses(IServiceCollection services, IConfiguration? configuration)
     {
-        if (hasAlreadyRegistered)
-            throw new InvalidOperationException($"{nameof(RegisterDiAttributes)} has already been called and can only be called once per application.");
-        hasAlreadyRegistered = true;
-
         var managerFactory = new ManagerFactory(services, configuration);
 
         IEnumerable<Type> classes = AppDomain.CurrentDomain.GetAssemblies()
