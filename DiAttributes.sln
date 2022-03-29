@@ -5,9 +5,14 @@ VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiAttributes", "DiAttributes\DiAttributes.csproj", "{D0441C90-E902-4D20-9ECB-E660C26F13BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApplication", "TestApplication\TestApplication.csproj", "{EAAE9201-D606-4DB8-89F7-D93CA623B61B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApplication", "TestApplication\TestApplication.csproj", "{EAAE9201-D606-4DB8-89F7-D93CA623B61B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApplication.Tests", "TestApplication.Tests\TestApplication.Tests.csproj", "{CE635E43-B6C2-40BC-9ACD-AE89694C847A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApplication.Tests", "TestApplication.Tests\TestApplication.Tests.csproj", "{CE635E43-B6C2-40BC-9ACD-AE89694C847A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1E86EEF3-4763-4DA1-9DD4-420B343D7788}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
