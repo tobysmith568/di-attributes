@@ -39,7 +39,7 @@ jobs:
         directory: TestApplication.Tests/TestResults
 
     - name: FOSSA
-      uses: fossas/fossa-action@v1.1.0
+      uses: fossas/fossa-action@v1.1.1
       if: matrix.os == 'ubuntu-latest'
       with:
         api-key: ${{ secrets.FOSSA_API_KEY }}
