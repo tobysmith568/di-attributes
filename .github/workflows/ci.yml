@@ -2,44 +2,47 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - renovate/*
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - renovate/*
 
 jobs:
   ci:
-
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v2
-      with:
-        dotnet-version: 6.0.x
-      
-    - name: Restore
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
-      
-    - name: Test
-      run: dotnet test --collect:"XPlat Code Coverage"
+      - uses: actions/checkout@v3
 
-    - name: Codecov
-      uses: codecov/codecov-action@v3.1.0
-      if: matrix.os == 'ubuntu-latest'
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: TestApplication.Tests/TestResults
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 6.0.x
 
-    - name: FOSSA
-      uses: fossas/fossa-action@v1.3.1
-      if: matrix.os == 'ubuntu-latest'
-      with:
-        api-key: ${{ secrets.FOSSA_API_KEY }}
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --collect:"XPlat Code Coverage"
+
+      - name: Codecov
+        uses: codecov/codecov-action@v3.1.0
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: TestApplication.Tests/TestResults
+
+      - name: FOSSA
+        uses: fossas/fossa-action@v1.3.1
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
