@@ -130,7 +130,3 @@ services.AddHttpClient<IMyHttpClient, MyHttpClient>();
 ## Licence
 
 DiAttributes is licensed under the [ISC License](https://github.com/tobysmith568/di-attributes/blob/main/LICENSE.md).
-
-<a href="https://app.fossa.com/projects/custom%2B29651%2Fgithub.com%2Ftobysmith568%2Fdi-attributes?ref=badge_large" alt="FOSSA Status">
-  <img alt="FOSSA Report" src="https://app.fossa.com/api/projects/custom%2B29651%2Fgithub.com%2Ftobysmith568%2Fdi-attributes.svg?type=large"/>
-</a>
